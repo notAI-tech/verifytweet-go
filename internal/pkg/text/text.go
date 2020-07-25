@@ -17,6 +17,7 @@ type Entities struct {
 var usernameRegex = regexp.MustCompile(`@(\w{1,15})\b`)
 var dateTimeRegex = regexp.MustCompile(`((1[0-2]|0?[1-9]):([0-5][0-9]) ?([AaPp][Mm]))\s-\s\d{1,2}\s\w+\s\d{4}`)
 var alphanumRegex = regexp.MustCompile(`[^A-Za-z0-9]+`)
+var smallWordsRegex = regexp.MustCompile(`\W*\b\w{1,2}\b`)
 
 const stdDateTimeLayout = "03:04 PM - 02 Jan 2006"
 
@@ -29,7 +30,8 @@ func Parse(rawTweet string) (*Entities, error) {
 	if uIndex == nil || dIndex == nil {
 		return nil, errors.New("datetime not found")
 	}
-	tweetStr := rawTweet[uIndex[1]:dIndex[0]]
+	rawTweetStr := rawTweet[uIndex[1]:dIndex[0]]
+	tweetStr := Sanitize(rawTweetStr)
 	dateTime, err := time.Parse(stdDateTimeLayout, strings.TrimSpace(dateTimeStr))
 	if err != nil {
 		return nil, err
@@ -39,4 +41,11 @@ func Parse(rawTweet string) (*Entities, error) {
 		DateTime: dateTime,
 		Tweet:    tweetStr,
 	}, nil
+}
+
+func Sanitize(rawTweet string) string {
+	t := alphanumRegex.ReplaceAllString(rawTweet, " ")
+	r := smallWordsRegex.ReplaceAllString(t, "")
+	c := strings.TrimSpace(r)
+	return c
 }
