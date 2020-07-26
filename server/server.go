@@ -3,12 +3,14 @@ package server
 import (
 	"bytes"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/notAI-tech/verifytweet-go/internal/pkg/ocr"
+	"github.com/notAI-tech/verifytweet-go/internal/pkg/search"
 	"github.com/notAI-tech/verifytweet-go/internal/pkg/text"
 )
 
@@ -54,7 +56,13 @@ func New() *gin.Engine {
 				c.AbortWithStatus(500)
 				return
 			}
-			c.JSON(http.StatusOK, map[string]interface{}{"data": entities})
+			tweets, err := search.SelfHosted(entities)
+			if err != nil {
+				log.Print(err)
+				c.AbortWithStatus(500)
+				return
+			}
+			c.JSON(http.StatusOK, map[string]interface{}{"data": tweets})
 		})
 	}
 

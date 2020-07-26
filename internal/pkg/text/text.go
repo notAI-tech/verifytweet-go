@@ -9,9 +9,9 @@ import (
 
 // Entities ...
 type Entities struct {
-	Username string
-	Tweet    string
-	DateTime time.Time
+	Username string    `json:"username"`
+	Tweet    string    `json:"tweet"`
+	DateTime time.Time `json:"datetime"`
 }
 
 var usernameRegex = regexp.MustCompile(`@(\w{1,15})\b`)
