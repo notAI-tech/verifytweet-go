@@ -32,27 +32,32 @@ func New() *gin.Engine {
 		v1.POST("/verify", func(c *gin.Context) {
 			file, _, err := c.Request.FormFile("tweetImage")
 			if err != nil {
+				log.Print(err)
 				c.AbortWithStatus(500)
 				return
 			}
 			defer file.Close()
 			buffer := bytes.NewBuffer(nil)
 			if _, err := io.Copy(buffer, file); err != nil {
+				log.Print(err)
 				c.AbortWithStatus(500)
 				return
 			}
 			imageBlob, err := ocr.Rescale(buffer.Bytes())
 			if err != nil {
+				log.Print(err)
 				c.AbortWithStatus(500)
 				return
 			}
 			rawText, err := ocr.ConvertToText(imageBlob)
 			if err != nil {
+				log.Print(err)
 				c.AbortWithStatus(500)
 				return
 			}
 			entities, err := text.Parse(rawText)
 			if err != nil {
+				log.Print(err)
 				c.AbortWithStatus(500)
 				return
 			}
@@ -62,7 +67,8 @@ func New() *gin.Engine {
 				c.AbortWithStatus(500)
 				return
 			}
-			c.JSON(http.StatusOK, map[string]interface{}{"data": tweets})
+			simMatrix := text.CalculateSimilarityMatrix(tweets, entities)
+			c.JSON(http.StatusOK, map[string]interface{}{"data": simMatrix})
 		})
 	}
 
